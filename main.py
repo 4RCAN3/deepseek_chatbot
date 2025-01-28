@@ -23,7 +23,7 @@ def process_request():
         return jsonify({"error": "Please provide a 'text' field in the JSON payload."}), 400
 
     input_text = data['text']
-    print(input_text)
+    print(f'Processings text: {input_text}')
     messages = [{"role": "user", "content": input_text}]
 
     try:
@@ -33,7 +33,10 @@ def process_request():
             inputs = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
             model_inputs = tokenizer([inputs], return_tensors="pt").to(device)
             generated_ids = model.generate(model_inputs.input_ids, max_new_tokens=100, do_sample=True)
+            #Generate output ids
             generated_ids = [output_ids[len(input_ids):] for input_ids, output_ids in zip(model_inputs.input_ids, generated_ids)]
+            
+            #Decode the ids to get the response
             response = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]
             response = response.replace('<think>\n\n</think>\n\n', '')
             return jsonify(response)
@@ -44,7 +47,7 @@ def process_request():
 @app.route('/')
 def home():
     """
-    Improved WebUI for testing the DeepSeek R1-1.5 Model.
+    WebUI for the DeepSeek R1-1.5 Model.
     """
     return '''
     <!DOCTYPE html>
